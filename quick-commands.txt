@@ -1,0 +1,47 @@
+QUICK COMMANDS FOR PROXMOX RECOVERY ANALYSIS
+===========================================
+
+Run these commands on your Proxmox server and paste the output back:
+
+# Essential Commands (Quick Check)
+pveversion -v
+cat /proc/cmdline
+systemctl get-default
+cat /etc/default/grub
+grep menuentry /boot/grub/grub.cfg | head -10
+zpool status
+pvs && vgs && lvs
+df -h
+journalctl -p err -n 20
+
+# If you want specific areas:
+
+## For Boot/GRUB Recovery Info:
+cat /etc/default/grub
+grep menuentry /boot/grub/grub.cfg
+ls -lh /boot/
+
+## For ZFS Recovery Info:
+zpool status
+zfs list -t snapshot
+zpool history
+
+## For Storage/LVM Info:
+pvdisplay
+vgdisplay
+lvdisplay
+cat /etc/fstab
+
+## For Backup/Snapshot Info:
+cat /etc/pve/jobs.cfg
+cat /etc/vzdump.conf
+zfs list -t snapshot
+
+## For System Recovery Status:
+systemctl list-units --type=target
+journalctl -b -p err
+systemctl status pve-cluster pvedaemon pveproxy
+
+## For Cluster Recovery:
+pvecm status
+cat /etc/pve/corosync.conf
