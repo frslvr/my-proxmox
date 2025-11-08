@@ -1,0 +1,34 @@
+USB4 Detection Commands for Windows PowerShell
+===============================================
+
+COMMAND 1 - Quick Check (RECOMMENDED - Copy this one):
+------------------------------------------------------
+Get-PnpDevice | Where-Object {$_.InstanceId -like '*VEN_1B21*'} | Select-Object FriendlyName, InstanceId, Status | Format-Table -AutoSize
+
+
+COMMAND 2 - Complete Check (All info in one command):
+-----------------------------------------------------
+Write-Host "`n=== ASMedia USB Controllers ===" -ForegroundColor Cyan; Get-PnpDevice | Where-Object {$_.InstanceId -like '*VEN_1B21*'} | Select-Object FriendlyName, InstanceId, Status | Format-Table -AutoSize; Write-Host "`n=== USB4 Devices ===" -ForegroundColor Yellow; Get-PnpDevice | Where-Object {$_.FriendlyName -like '*USB4*'} | Select-Object FriendlyName, Status, Class | Format-List; Write-Host "`n=== All USB Host Controllers ===" -ForegroundColor Green; Get-PnpDevice -Class USB | Where-Object {$_.FriendlyName -like '*Host Controller*'} | Select-Object FriendlyName, Status | Format-Table -AutoSize
+
+
+COMMAND 3 - Find USB4 Router specifically:
+------------------------------------------
+Get-PnpDevice | Where-Object {$_.FriendlyName -like '*USB4*'} | Select-Object FriendlyName, Status, InstanceId | Format-List
+
+
+COMMAND 4 - Check device with DEV_2425 (USB4 controller):
+---------------------------------------------------------
+Get-PnpDevice | Where-Object {$_.InstanceId -like '*VEN_1B21&DEV_2425*'} | Select-Object FriendlyName, Status, InstanceId | Format-List
+
+
+What to look for:
+-----------------
+VEN_1B21&DEV_2425 = USB4 controller (40 Gbps) - This is what we want to find!
+VEN_1B21&DEV_2426 = USB 3.2 controller (20 Gbps)
+
+Instructions:
+-------------
+1. Open PowerShell as Administrator
+2. Copy COMMAND 1 above
+3. Paste and press Enter
+4. Share the output

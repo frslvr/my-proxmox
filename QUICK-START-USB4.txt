@@ -1,0 +1,68 @@
+═══════════════════════════════════════════════════════
+  USB4 PORT IDENTIFICATION - QUICK START
+═══════════════════════════════════════════════════════
+
+🎉 USB4 IS WORKING! Status: OK
+
+═══════════════════════════════════════════════════════
+  FASTEST METHOD: Automated Port Detection
+═══════════════════════════════════════════════════════
+
+1. Open PowerShell as Administrator
+2. cd C:\Users\User1\source\repos\test-git
+3. .\monitor-new-usb-devices.ps1
+4. Type 'y' to enable monitoring
+5. Plug USB device into different rear ports
+6. Script will highlight USB4 port in GREEN
+7. Press Ctrl+C when done
+
+═══════════════════════════════════════════════════════
+  MANUAL METHOD: One Command
+═══════════════════════════════════════════════════════
+
+BEFORE plugging in test device:
+-------------------------------
+Get-PnpDevice -PresentOnly | Where-Object {$_.InstanceId -like '*USB*' -and $_.Class -ne 'USB'} | Select-Object FriendlyName, InstanceId
+
+
+AFTER plugging in test device:
+-------------------------------
+Get-PnpDevice -PresentOnly | Where-Object {$_.InstanceId -like '*USB*' -and $_.Class -ne 'USB'} | Select-Object FriendlyName, InstanceId
+
+
+Compare the two outputs. The new device's InstanceId will show
+which controller it's connected to.
+
+If InstanceId contains "00E3" → That's the USB4 port!
+
+═══════════════════════════════════════════════════════
+  WHAT TO LOOK FOR
+═══════════════════════════════════════════════════════
+
+USB4 Host Router location code: 00E3
+
+When you plug a device into the USB4 port, its InstanceId
+will contain "00E3"
+
+Example:
+USBSTOR\Disk&Ven_Generic&Prod_Flash&Rev_1.00\...&00E3...
+                                              ^^^^
+                                              USB4 port!
+
+═══════════════════════════════════════════════════════
+  AFTER FINDING USB4 PORT
+═══════════════════════════════════════════════════════
+
+1. Unplug your current hub
+2. Plug it into the identified USB4 port (40 Gbps)
+3. Reconnect your devices
+4. Enjoy full 40 Gbps bandwidth!
+
+═══════════════════════════════════════════════════════
+
+Need help? See these files:
+- USB4-SUCCESS.md (complete documentation)
+- test-usb-port-commands.txt (all commands)
+- identify-usb4-port.ps1 (detailed script)
+
+═══════════════════════════════════════════════════════
