@@ -2,7 +2,7 @@
 
 **Server:** proxmox
 **Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
-**Last Updated:** 2025-11-08
+**Last Updated:** 2025-11-09
 **Status:** ✅ Production Ready
 
 ---
@@ -22,12 +22,13 @@
 - 3 kernels available: 6.14.11-3-pve (current), 6.14.11-2-pve, 6.14.8-2-pve
 - Custom recovery mode configured
 
-**VM 102 (ws1) - Windows Workstation:**
+**VM 102 (ws1) - Windows Server 2025:**
 - NVIDIA RTX 4070 SUPER GPU passthrough ✅
 - NVIDIA HD Audio passthrough ✅
 - ASMedia USB 3.2 (20 Gbps) ✅
 - ASMedia USB4/Thunderbolt (40 Gbps) ✅
 - AMD USB 3.1 controllers (2x) ✅
+- ⚠️ Note: Windows Server has limited Thunderbolt dock support (see warnings)
 
 ---
 
@@ -91,6 +92,15 @@ pcie_aspm.policy=performance
    - Host can't use that mouse
    - Use SSH/network or connect different mouse
 
+4. **Windows Server Thunderbolt Dock Limitation**
+   - VM 102 running Windows Server 2025
+   - Thunderbolt docks (CalDigit TS3 Plus, etc.) have limited functionality
+   - Intel blocks Thunderbolt software on Windows Server editions
+   - Thunderbolt Control Center not available
+   - USB4 controller works, but dock device enumeration fails
+   - **Workaround:** Individual USB device passthrough, or switch to Windows 11 Pro
+   - See docs/SESSION-HISTORY.md Session 4 for details
+
 ---
 
 ## Recovery Procedures
@@ -108,6 +118,36 @@ pcie_aspm.policy=performance
 zfs list -t snapshot  # List available snapshots
 zfs rollback rpool/ROOT/pve-1@snapshot-name
 reboot
+```
+
+### Tailscale TPM Lockout Recovery
+
+```bash
+# If Tailscale fails with TPM lockout error:
+systemctl stop tailscaled
+mv /var/lib/tailscale/tailscaled.state /var/lib/tailscale/tailscaled.state.tpm-locked
+systemctl start tailscaled
+tailscale up  # Re-authenticate with Tailscale network
+```
+
+**When this happens:**
+- Common after system crashes or power loss
+- TPM dictionary attack lockout mode activated
+- Tailscale cannot decrypt state file
+- Re-authentication required but no data lost
+
+### APT Repository Errors
+
+```bash
+# If apt-get update fails with 404 errors:
+# Find problematic repository
+ls -la /etc/apt/sources.list.d/
+
+# Remove outdated/broken repository
+find /etc/apt/sources.list.d/ -name '*repository-name*' -exec rm -v {} \;
+
+# Update package list
+apt-get update
 ```
 
 ### Remove VM Passthrough (Emergency)

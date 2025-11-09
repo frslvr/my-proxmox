@@ -1,7 +1,7 @@
 # Proxmox Quick Reference Guide
 
 **Server:** proxmox
-**Last Updated:** 2025-11-08
+**Last Updated:** 2025-11-09
 
 ---
 
@@ -14,6 +14,52 @@
 # Select: "Proxmox VE (Recovery)"
 # Result: VFIO disabled, all USB returns to host
 ```
+
+### Tailscale TPM Lockout Recovery
+
+```bash
+# If Tailscale service fails with TPM lockout error:
+systemctl stop tailscaled
+mv /var/lib/tailscale/tailscaled.state /var/lib/tailscale/tailscaled.state.tpm-locked
+systemctl start tailscaled
+tailscale up  # Re-authenticate
+
+# Alternative: Clear TPM lockout (requires tpm2-tools)
+tpm2_dictionarylockout -c
+systemctl start tailscaled
+```
+
+**Symptoms:**
+- Error: "TPM_RC_LOCKOUT: authorizations for objects subject to DA protection"
+- Error: "failed to unseal encryption key with TPM"
+- Tailscale0 interface not created
+- Server unreachable via Tailscale network
+
+**Cause:** TPM dictionary attack lockout after system crashes/power loss
+
+### APT Repository Errors
+
+```bash
+# If apt-get update fails with 404 or exit code 100:
+
+# Find problematic repository
+ls -la /etc/apt/sources.list.d/
+
+# Search for specific broken repo
+find /etc/apt/sources.list.d/ -name '*openrgb*'
+find /etc/apt/sources.list.d/ -name '*hardware*'
+
+# Remove broken repository
+find /etc/apt/sources.list.d/ -name '*repository-name*' -exec rm -v {} \;
+
+# Update package list
+apt-get update
+```
+
+**Common Issues:**
+- Debian version mismatch (bookworm vs trixie)
+- Repository discontinued or moved
+- Third-party repos after Proxmox upgrades
 
 ### ZFS Emergency Commands
 
@@ -374,6 +420,49 @@ journalctl -u qemu-server@102 -n 50
 2. Source: station-drivers.com
 3. Reboot Windows VM
 4. Verify "USB4 Host Router - Status: OK"
+
+### Thunderbolt Dock Not Working (Windows Server)
+
+**Problem:**
+- CalDigit or other Thunderbolt dock detected but not functional
+- No Ethernet, audio, or USB devices from dock
+- USB4 Host Router shows "OK" but dock devices don't enumerate
+
+**Root Cause:**
+- Windows Server editions do NOT support Thunderbolt docks (Intel restriction)
+- Thunderbolt Control Center cannot be installed on Windows Server
+- USB4 controller working ≠ Thunderbolt dock functionality
+
+**Solutions:**
+
+**Option 1: Individual USB Device Passthrough**
+```bash
+# On Proxmox host:
+# List USB devices
+lsusb
+
+# Pass specific device to VM
+qm set 102 -usb0 host=VENDOR:PRODUCT
+# Example: qm set 102 -usb0 host=05ac:0256
+
+# Pass by USB port (survives device replug)
+qm set 102 -usb0 host=1-2
+
+# Remove passthrough
+qm set 102 --delete usb0
+```
+
+**Option 2: Switch to Windows 11 Pro (RECOMMENDED)**
+- Full Thunderbolt dock support
+- Thunderbolt Control Center available
+- Better consumer hardware compatibility
+- Lower cost than Windows Server
+- Appropriate for desktop workstation use case
+
+**What Works vs What Doesn't:**
+- USB4 controller passthrough: Works
+- Individual USB device passthrough: Works
+- Thunderbolt dock full functionality: Requires Windows 10/11 desktop edition
 
 ---
 

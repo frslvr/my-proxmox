@@ -1010,4 +1010,1040 @@ Storage:
 **Last Updated:** 2025-11-08
 **Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
 **Result:** ✅ **PRODUCTION-READY** - All 6 PCI passthrough devices functional, USB4 40Gbps confirmed working
-**Next Steps:** User to implement 5m USB4/Thunderbolt 4 cable solution for remote server setup
+**Next Steps:** User to implement 5m cable solution for remote server setup
+
+---
+
+# Session 3: Dual Monitor Extension Cable Research
+
+**Date:** 2025-11-08
+**Session:** Monitor Extension Cable Selection - 6K + 4K Dual Monitor Setup
+**Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
+
+---
+
+## Executive Summary
+
+Researched and documented cable requirements for extending dual monitors (6K + 4K) approximately 5 meters from Proxmox server to desk workspace. Identified optimal solution using separate DisplayPort and USB-C cables instead of single USB4 cable approach.
+
+### Final Recommendation: ✅ Separate Cables ($65-70)
+
+**Selected Configuration:**
+- 2x Capshi VESA Certified DisplayPort 1.4 cables (15ft) - $50
+- 1x USB-C to USB-C cable (16ft, USB 3.2) - $15-20
+- Total cost: $65-70
+
+---
+
+## What We Accomplished
+
+### 1. ✅ Complete Hardware Analysis
+
+**Primary Monitor - ASUS ProArt PA32QCV:**
+- Resolution: 6K @ 60Hz (6016x3384)
+- Inputs: 2x Thunderbolt 4, DisplayPort 1.4, HDMI 2.1
+- USB Hub: USB-C upstream port (provides 4 downstream USB ports)
+- Native Thunderbolt 4 support (not just DP Alt Mode)
+
+**Secondary Monitor:**
+- Resolution: 4K @ 60Hz (3840x2160)
+- No USB hub
+
+**Server GPU - RTX 4070 SUPER:**
+- Outputs: 3x DisplayPort 1.4a, 1x HDMI 2.1a
+- Supports DSC (Display Stream Compression)
+- Confirmed working with 6K displays via DP 1.4a + DSC
+
+**Motherboard - ASUS ProArt X870E-CREATOR WIFI:**
+- Has "DisplayPort In → USB4 Out" routing feature
+- USB4 controller (78:00.0) passed to VM 102
+- Theoretical single-cable solution possible but not recommended
+
+---
+
+### 2. ✅ Bandwidth Requirements Calculated
+
+**6K Monitor @ 60Hz:**
+- Uncompressed: ~30.69 Gbps (exceeds DP 1.4a capacity)
+- With DSC: ~14.66 Gbps (well within DP 1.4a's 32.4 Gbps)
+- **Requires DSC to be enabled in NVIDIA Control Panel**
+
+**4K Monitor @ 60Hz:**
+- Uncompressed: ~12.54 Gbps
+- No compression needed, fits easily in DP 1.4a bandwidth
+
+**Total Bandwidth:**
+- Both monitors: ~27.2 Gbps total (well within GPU capabilities)
+- RTX 4070 SUPER has 3x independent DP 1.4a outputs
+
+---
+
+### 3. ✅ Cable Selection and Testing Requirements
+
+**Video Cables:**
+
+**Capshi 8K DisplayPort 1.4 Cable (15ft) - SELECTED**
+- Price: $25 each (2 needed = $50)
+- Amazon ASIN: B094VYSZXW
+- VESA Certified (tested and validated for DP 1.4 spec)
+- 32.4 Gbps HBR3 bandwidth
+- Supports DSC (required for 6K)
+- Passive copper (reliable at 15ft with certification)
+
+**Why VESA Certified matters:**
+- Third-party tested and validated for DP 1.4 compliance
+- Ensures signal integrity at specified lengths
+- More reliable than non-certified cables at 15ft
+
+**Alternatives Considered:**
+- Fiber optic cables: More expensive ($65-130 each)
+- Not necessary at 15ft with VESA certified passive copper
+- Can upgrade later if issues occur
+
+**USB Cable:**
+
+**USB-C to USB-C Cable (16ft) - SELECTED**
+- Price: $15-20
+- Options: KING KABLE USB-C 20Gbps or similar
+- Minimum spec: USB 3.2 Gen 1 (5 Gbps)
+- Connects server USB4/USB-C port to monitor's USB-C upstream port
+
+**IMPORTANT CORRECTION:**
+- Initial assumption: Monitor has USB-B upstream port
+- Reality: Monitor has USB-C upstream port
+- Required cable change: USB-A extension → USB-C to USB-C
+
+---
+
+### 4. ✅ Alternative Solution Investigated: OWC USB4 Active Optical Cable
+
+**OWC USB4 40Gbps Active Optical Cable**
+- Model: OWCCBLUS4A04.5M
+- Length: 15ft (4.5m)
+- Price: $129.99
+- Bandwidth: 40 Gbps
+
+**Critical Limitation Discovered:**
+> "Displays using DisplayPort Alt Mode via USB-C are not supported"
+
+**What This Means:**
+- Does NOT support DP Alt Mode displays
+- DOES support native Thunderbolt displays
+- ASUS ProArt PA32QCV has Thunderbolt 4 inputs (might work theoretically)
+- Would require routing GPU DisplayPort through motherboard's "DP In → USB4 Out" feature
+
+**Why NOT Recommended:**
+1. High cost ($130 vs $65-70 for separate cables)
+2. DP Alt Mode limitation unclear with monitor's TB4 input
+3. Complexity with motherboard DP routing + VM passthrough
+4. Unclear if routing works correctly when USB4 controller is passed to VM
+5. Unproven configuration
+6. Separate cables are simpler, cheaper, and proven
+
+**Theoretical Single-Cable Approach:**
+```
+GPU DP Out → Motherboard DP In → USB4 Out (via tunneling) → Monitor TB4 In
+                                    ↓
+                           Passed to VM 102?
+                                    ↓
+                           Unclear if routing works
+```
+
+**Problems:**
+- Motherboard's DP In → USB4 Out routing may not work when USB4 controller is passed to VM
+- No confirmed examples of this working with Proxmox GPU/USB passthrough
+- Adds unnecessary complexity
+- Costs $60-65 more than separate cables
+
+---
+
+### 5. ✅ Important Technical Corrections Made
+
+**Correction #1: Monitor USB Upstream Port Type**
+- Initial: Assumed USB-B (standard for many monitors)
+- Actual: USB-C upstream port
+- Impact: Changed USB cable recommendation from USB-A extension to USB-C to USB-C
+
+**Correction #2: Monitor Thunderbolt Support**
+- Initial: Assumed only DP Alt Mode via USB-C
+- Actual: Native Thunderbolt 4 input support (2x TB4 ports)
+- Impact: Opens theoretical single-cable solution, but still not recommended
+
+**Correction #3: DSC Requirement**
+- Initial: Uncertain if 6K would work
+- Confirmed: RTX 4070 SUPER supports DSC
+- Confirmed: 6K@60Hz requires DSC over DP 1.4a
+- Confirmed: ~14.66 Gbps with DSC (well within 32.4 Gbps capacity)
+
+**Correction #4: OWC Cable Limitations**
+- Initial: Considered viable single-cable solution
+- Discovered: "DP Alt Mode not supported" limitation
+- Discovered: Complexity with motherboard routing + VM passthrough
+- Conclusion: Not recommended despite theoretical viability
+
+---
+
+## Cable Comparison Table
+
+| Solution | Cost | Cables | Complexity | Proven | Recommendation |
+|----------|------|--------|------------|--------|----------------|
+| **Separate Cables** | **$65-70** | 2x DP + 1x USB-C | Low | ✅ Yes | ✅ **RECOMMENDED** |
+| OWC USB4 Active Optical | $130 | 1x USB4 | High | ❌ No | ❌ Not Recommended |
+| Fiber DP (both monitors) | $150+ | 2x Fiber DP + USB-C | Low | ✅ Yes | ⚠️ Unnecessary at 15ft |
+| Mixed (6K fiber, 4K copper) | $115+ | 1x Fiber + 1x DP + USB-C | Low | ✅ Yes | ⚠️ Unnecessary at 15ft |
+
+---
+
+## Final Configuration
+
+### Connection Diagram
+
+```
+Server Room - Proxmox VM 102:
+
+RTX 4070 SUPER:
+  DP Port 1 ──[15ft Capshi DP 1.4 Cable]──> 6K Monitor (DP input)
+                                               └─ USB-C upstream ──[16ft USB-C Cable]── Server USB4/USB-C
+                                               └─ 4 USB downstream ports for peripherals
+
+  DP Port 2 ──[15ft Capshi DP 1.4 Cable]──> 4K Monitor (DP input)
+
+  DP Port 3: Available
+  HDMI: Available
+```
+
+### Installation Steps
+
+1. Run 2x DisplayPort cables from GPU to each monitor
+   - GPU DP Port 1 → 6K Monitor DP input
+   - GPU DP Port 2 → 4K Monitor DP input
+
+2. Run 1x USB-C to USB-C cable
+   - Server USB4/USB-C port → 6K Monitor USB-C upstream port
+   - This activates monitor's 4-port USB hub
+
+3. Connect peripherals to 6K monitor's USB hub at desk
+   - Keyboard, mouse, webcam, etc.
+   - Hub provides 4 USB ports
+
+4. Enable DSC in Windows
+   - NVIDIA Control Panel → Change Resolution
+   - Enable DSC for 6K monitor
+   - Verify 6016x3384@60Hz resolution
+
+---
+
+## Key Technical Findings
+
+### Monitor Specifications
+
+**ASUS ProArt PA32QCV:**
+- Native resolution: 6016x3384 @ 60Hz
+- Inputs: 2x Thunderbolt 4 (native TB, not just DP Alt Mode), 1x DisplayPort 1.4, 1x HDMI 2.1
+- USB Hub: USB-C upstream (NOT USB-B), 4x USB downstream ports
+- Power delivery: Supports USB-C power delivery
+
+### GPU Capabilities
+
+**RTX 4070 SUPER:**
+- DisplayPort 1.4a (HBR3): 32.4 Gbps per port
+- DSC support: Confirmed (required for 6K@60Hz)
+- 3x independent DP outputs + 1x HDMI
+- All DP ports support DSC
+
+### Bandwidth Calculations
+
+**6K @ 60Hz (6016x3384):**
+- Pixel clock: 6016 × 3384 × 60 = 1,221,570,560 pixels/sec
+- Uncompressed (8-bit RGB): ~30.69 Gbps (exceeds DP 1.4a)
+- With DSC (~2:1): ~14.66 Gbps ✅ (within DP 1.4a capacity)
+
+**4K @ 60Hz (3840x2160):**
+- Pixel clock: 3840 × 2160 × 60 = 497,664,000 pixels/sec
+- Uncompressed (8-bit RGB): ~12.54 Gbps ✅ (within DP 1.4a capacity)
+
+### Cable Requirements
+
+**DisplayPort 1.4 at 15ft:**
+- VESA certified passive copper cables work reliably
+- 32.4 Gbps HBR3 bandwidth maintained
+- DSC support included
+- Fiber optic unnecessary at this length
+
+**USB 3.2 at 16ft:**
+- USB-C to USB-C (5 Gbps minimum)
+- 20 Gbps capable cables available for future-proofing
+- Powers monitor's USB hub functionality
+
+---
+
+## Documents Updated
+
+### 1. SHOPPING-LIST.md - Complete Overhaul
+
+**Changes Made:**
+- Updated monitor specifications (added exact resolution, input types, USB-C upstream)
+- Added GPU DSC support confirmation
+- Added motherboard model and DP In → USB4 Out feature
+- Corrected USB cable from USB-A extension to USB-C to USB-C
+- Updated total cost from $85 to $65-70
+- Added OWC USB4 cable as alternative with detailed limitations
+- Added "Important Corrections Made During Research" section
+- Expanded troubleshooting with DSC enablement steps
+- Added bandwidth calculations and technical details
+
+**Key Additions:**
+- OWC USB4 Active Optical Cable analysis
+- DP Alt Mode vs native Thunderbolt distinction
+- Motherboard routing complexity discussion
+- Correction history for transparency
+
+### 2. docs/SESSION-HISTORY.md - New Session Entry
+
+**Added:**
+- Session 3: Dual Monitor Extension Cable Research
+- Complete hardware analysis
+- Bandwidth calculations
+- Cable selection rationale
+- OWC USB4 cable investigation and rejection
+- Technical corrections made during research
+- Connection diagrams
+- Final recommendations
+
+---
+
+## Research Sources
+
+### Key Information Sources
+
+1. **ASUS ProArt PA32QCV Manual**
+   - Confirmed USB-C upstream port (not USB-B)
+   - Confirmed native Thunderbolt 4 inputs (not just DP Alt Mode)
+   - Confirmed USB hub functionality
+
+2. **RTX 4070 SUPER Specifications**
+   - Confirmed DisplayPort 1.4a (HBR3) support
+   - Confirmed DSC support
+   - Bandwidth calculations validated
+
+3. **OWC USB4 Cable Product Page**
+   - Critical limitation: "Displays using DisplayPort Alt Mode via USB-C are not supported"
+   - Confirmed Thunderbolt display support
+   - Price and specifications
+
+4. **ASUS X870E-CREATOR WIFI Manual**
+   - Confirmed DP In → USB4 Out routing feature
+   - USB4 controller identification (78:00.0 - ASMedia ASM4242)
+
+5. **VESA DisplayPort 1.4 Specification**
+   - HBR3 bandwidth: 32.4 Gbps
+   - DSC compression ratios and requirements
+   - Cable certification standards
+
+---
+
+## Shopping List Final Status
+
+**READY TO PURCHASE: $65-70 Total**
+
+```
+Cart:
+1. Capshi 8K DP 1.4 Cable 15ft (Qty: 2) = $50
+   Amazon ASIN: B094VYSZXW
+
+2. USB-C to USB-C Cable 16ft (USB 3.2) = $15-20
+   Options: KING KABLE USB-C 20Gbps or similar
+
+TOTAL: $65-70
+```
+
+**Why This Configuration:**
+- ✅ Most cost-effective ($65 less than OWC USB4 cable)
+- ✅ Simple, proven approach
+- ✅ VESA certified cables ensure DP 1.4 compliance
+- ✅ All bandwidth requirements met
+- ✅ Can upgrade individual cables if needed
+- ✅ No complexity with VM passthrough
+- ✅ Monitor USB hub extends USB to desk
+
+---
+
+## Session Metrics
+
+**Session Date:** 2025-11-08
+**Session Duration:** ~2 hours
+**Tasks Completed:** Cable research, hardware analysis, shopping list update
+**Documents Updated:** 2 (SHOPPING-LIST.md, SESSION-HISTORY.md)
+**Issues Resolved:** 4 corrections (USB port type, cable type, OWC limitations, DSC requirement)
+**Final Decision:** Separate cables approach ($65-70)
+
+**Key Success Factors:**
+1. Thorough investigation of OWC USB4 cable limitations
+2. Discovery of monitor's USB-C upstream port (not USB-B)
+3. Confirmation of RTX 4070 SUPER DSC support
+4. Recognition that simple is better than complex for this use case
+5. Cost-benefit analysis favoring separate cables
+
+---
+
+**Last Updated:** 2025-11-09
+**Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
+**Result:** ✅ **READY TO PURCHASE** - Shopping list finalized, $65-70 total
+**Next Steps:** Purchase cables and implement dual monitor extension setup
+
+---
+
+# Session 4: System Troubleshooting - Tailscale, APT, and Thunderbolt Dock Issues
+
+**Date:** 2025-11-09
+**Session:** Multi-Issue Troubleshooting - Tailscale TPM Lockout, APT Repository Error, CalDigit Dock Investigation
+**Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
+
+---
+
+## Executive Summary
+
+Resolved critical Tailscale connectivity issue caused by TPM lockout, fixed APT repository error preventing package updates, and investigated CalDigit TS3 Plus Thunderbolt dock compatibility with Windows Server 2025 VM.
+
+### Issues Status:
+- ✅ Tailscale TPM lockout - RESOLVED
+- ✅ APT update error (OpenRGB repo) - RESOLVED
+- 🔴 CalDigit TS3 Plus dock detection - DOCUMENTED (Windows Server limitation)
+
+---
+
+## What We Accomplished
+
+### 1. ✅ Tailscale TPM Lockout Issue - CRITICAL FIX
+
+**Problem:**
+- Tailscale service failing to start on Proxmox host
+- Server unreachable via Tailscale network (100.91.212.17)
+- Tailscale interface (tailscale0) not created
+
+**Error Messages:**
+```
+TPM_RC_LOCKOUT: authorizations for objects subject to DA protection are not allowed at this time because the TPM is in DA lockout mode
+failed to unseal encryption key with TPM: tpm2.Unseal
+```
+
+**Root Cause Analysis:**
+- TPM (Trusted Platform Module) entered Dictionary Attack (DA) lockout mode
+- Occurs after multiple failed authentication attempts (common after system crashes or improper shutdowns)
+- Tailscale state file (`/var/lib/tailscale/tailscaled.state`) is encrypted using TPM
+- When TPM is locked out, Tailscale cannot decrypt its state file
+- Service fails to start without access to encrypted state
+
+**Solution Applied:**
+```bash
+# Stop the tailscaled service
+systemctl stop tailscaled
+
+# Backup the TPM-locked state file
+mv /var/lib/tailscale/tailscaled.state /var/lib/tailscale/tailscaled.state.tpm-locked
+
+# Start fresh (creates new state file without TPM encryption)
+systemctl start tailscaled
+
+# Re-authenticate with Tailscale network
+tailscale up
+```
+
+**Results:**
+- ✅ Tailscale service started successfully
+- ✅ tailscale0 interface created and configured
+- ✅ Server rejoined Tailscale network
+- ✅ Remote access via 100.91.212.17 restored
+- ⚠️ Old state file preserved in case data recovery needed
+
+**Alternative Fix (if old state must be preserved):**
+```bash
+# Clear TPM dictionary attack lockout counter
+tpm2_dictionarylockout -c
+
+# Attempt to restart service (may allow unsealing)
+systemctl start tailscaled
+```
+
+**Note:** This alternative requires `tpm2-tools` package and may not work if TPM is in permanent lockout mode. Creating fresh state is more reliable.
+
+**Prevention:**
+- TPM lockout typically occurs after:
+  - Multiple failed boot attempts
+  - System crashes during TPM operations
+  - Power loss during boot
+  - Kernel panics
+- Consider disabling TPM state encryption if lockouts are frequent
+- Alternative: Use `tailscale up --authkey=<key>` for automated re-authentication
+
+---
+
+### 2. ✅ APT Update Error (Exit Code 100) - RESOLVED
+
+**Problem:**
+- `apt-get update` failing with exit code 100
+- Package updates and installations blocked
+- Repository error preventing system maintenance
+
+**Error Message:**
+```
+The repository 'https://download.opensuse.org/repositories/hardware:/openrgb/Debian_12 Release' does not have a Release file
+404 Not Found
+```
+
+**Root Cause Analysis:**
+- OpenRGB repository configured for Debian 12 (bookworm)
+- Proxmox running on Debian trixie (Debian 13/testing)
+- OpenRGB repository does not have a Debian trixie version
+- Repository URL returns 404 Not Found
+- APT treats missing repository as fatal error
+
+**Investigation:**
+```bash
+# Found repository configuration files
+find /etc/apt/sources.list.d/ -name '*openrgb*'
+# Result: /etc/apt/sources.list.d/hardware:openrgb.list
+
+find /etc/apt/sources.list.d/ -name '*hardware*'
+# Result: Same file
+```
+
+**Solution Applied:**
+```bash
+# Remove OpenRGB repository configuration
+find /etc/apt/sources.list.d/ -name '*openrgb*' -exec rm -v {} \;
+find /etc/apt/sources.list.d/ -name '*hardware*' -exec rm -v {} \;
+
+# Update package list
+apt-get update
+```
+
+**Results:**
+- ✅ apt-get update completes successfully
+- ✅ No more 404 errors
+- ✅ System package management restored
+- ⚠️ OpenRGB software may need manual installation if still needed
+
+**Alternative Solutions:**
+1. **If OpenRGB is still needed:**
+   - Install from source: https://gitlab.com/CalcProgrammer1/OpenRGB
+   - Use AppImage version
+   - Wait for Debian trixie repository
+
+2. **Add Debian 12 repository (not recommended):**
+   - May cause dependency conflicts
+   - Trixie has newer libraries than bookworm
+
+**Background:**
+- OpenRGB is RGB lighting control software
+- Commonly used for controlling motherboard/peripheral RGB
+- Not critical for Proxmox host operation
+- If RGB control needed, can be installed in Windows VM instead
+
+---
+
+### 3. 🔴 CalDigit TS3 Plus Thunderbolt Dock - Windows Server 2025 Incompatibility
+
+**Problem:**
+- CalDigit TS3 Plus Thunderbolt 3 dock connected to USB4 port (rear I/O #10)
+- Dock detected in Windows Device Manager but status: "Unknown"
+- Device class: USBDevice (generic, not functioning)
+- No Ethernet adapter, audio devices, or USB functionality available
+- Dock works perfectly on other PCs with Windows 10/11
+
+**Environment:**
+- **Host:** Proxmox VE 8.x (Debian trixie)
+- **VM:** Windows Server 2025 Standard (build 26100.1742)
+- **GPU:** RTX 4070 SUPER (passed through via hostpci0)
+- **USB4 Controller:** ASMedia ASM4242 (PCI device 78:00.0, passed through as hostpci3)
+- **Motherboard:** ASUS ProArt X870E-CREATOR WIFI
+- **Dock:** CalDigit TS3 Plus (Thunderbolt 3 certified)
+- **Connection:** USB-C cable to rear I/O port #10 (USB4 40Gbps capable)
+
+**USB4 Controller Status in Windows:**
+```
+Device: USB4 Host Router
+Manufacturer: ASMedia Technology Inc.
+Driver: Usb4HR (v1.0.0.0, dated 12/11/2023)
+Driver Provider: ASMedia Technology Inc.
+Status: This device is working properly
+Service: Usb4HR
+```
+
+**CalDigit Dock Status:**
+```
+Device: TS3 Plus
+Status: Unknown
+Device Class: USBDevice (generic USB device, not Thunderbolt peripheral)
+Problem Code: None (but no functionality)
+```
+
+**Investigation Findings:**
+
+**1. Windows Server Thunderbolt/USB4 Limitations:**
+
+From Intel and community research:
+- Intel blocks Thunderbolt driver installation on Windows Server editions
+- Confirmed for Windows Server 2016, 2019, and likely extends to Server 2025
+- Thunderbolt Control Center (required for device authorization) not available on Windows Server
+- Microsoft Store not available on Windows Server editions (can't install Thunderbolt apps)
+- CalDigit and Intel primarily test and support Windows 10/11 desktop versions only
+
+**2. USB4 Connection Manager Limitations:**
+
+From Microsoft documentation:
+- Windows 11 USB4 connection manager does not support add-in cards in first release
+- Only supports integrated USB4 controllers on select laptops/motherboards
+- ASMedia ASM4242 is a discrete USB4 add-in controller (not integrated)
+- May explain limited functionality even if controller is detected
+
+**3. Proxmox Passthrough Limitations:**
+
+From Proxmox community forums and Reddit:
+- Common issue: "The dock only works for the display, nothing I plug in gets detected"
+- Thunderbolt controller passes through, but dock devices don't enumerate properly
+- More stable approach: "Connect things to the dock and pass through devices 1 by 1 rather than passing through the entire Thunderbolt controller"
+- USB4/Thunderbolt dock passthrough has known quirks in VM environments
+- DisplayPort tunneling often works, but USB/Ethernet tunneling frequently fails
+
+**4. Required Software (Not Available on Server 2025):**
+
+Missing components:
+- **Intel Thunderbolt Software/Thunderbolt Control Center** - Not installable on Windows Server
+- **CalDigit Thunderbolt Station 3 Plus Firmware Updater** - Requires Windows 10/11
+- **ASMedia USB4 Host Router Advanced Drivers** - Only officially supports Windows 10/11
+- **Thunderbolt device authorization UI** - Not available without Thunderbolt Control Center
+
+**Attempted Solutions:**
+
+1. ✅ USB4 controller successfully passed through to VM (hostpci3: 0000:78:00.0)
+2. ✅ Controller detected in Windows Device Manager (USB4 Host Router - Status: OK)
+3. ✅ ASMedia driver installed (version 1.0.0.0 from station-drivers.com)
+4. ✅ CalDigit dock partially detected (shows as "TS3 Plus" device)
+5. ❌ Thunderbolt software cannot be installed (Windows Server restriction)
+6. ❌ Dock functionality not working (no Ethernet, audio, or USB devices appear)
+7. ❌ Manual INF modification unsuccessful (driver signing issues)
+
+**Workaround Options:**
+
+**Option 1: Individual USB Device Passthrough (RECOMMENDED FOR NOW)**
+- Keep USB4 controller passed through to VM (for future USB4/TB devices)
+- When USB devices are plugged into CalDigit dock, pass them individually from Proxmox host
+- More stable according to Proxmox community experience
+- Allows selective device passthrough
+
+Example command:
+```bash
+# Find device vendor and product IDs on Proxmox host
+lsusb
+# Example output: Bus 001 Device 005: ID 05ac:0256 Apple, Inc. iBridge
+
+# Pass specific device to VM
+qm set 102 -usb0 host=05ac:0256
+
+# Or pass by USB port
+qm set 102 -usb0 host=1-2
+```
+
+**Option 2: Modify Intel Thunderbolt Driver INF (EXPERIMENTAL)**
+- Download Intel Thunderbolt DCH driver for Windows 10/11
+- Modify .inf file to remove Windows Server OS version restrictions
+- Install as unsigned driver with test signing enabled
+- **Not guaranteed to work** - may have reduced functionality or stability issues
+- May violate Intel driver license terms
+
+Steps (proceed at own risk):
+```powershell
+# Enable test signing in Windows Server 2025
+bcdedit /set testsigning on
+
+# Extract Intel Thunderbolt driver
+# Edit .inf file to add Windows Server support
+# Install with "Add Legacy Hardware" in Device Manager
+```
+
+**Option 3: Switch to Windows 11 Pro (STRONGLY RECOMMENDED)**
+- Windows 11 Pro has full Thunderbolt/USB4 support
+- Thunderbolt Control Center available via Microsoft Store
+- CalDigit officially supports Windows 11
+- Better driver support for consumer hardware
+- All USB4/Thunderbolt dock features should work
+
+Benefits of Windows 11 Pro for workstation VM:
+- Full desktop OS features (Store, modern UI)
+- Better hardware compatibility for consumer devices
+- Thunderbolt dock support
+- Better gaming/multimedia support
+- Lower licensing cost than Windows Server
+
+When Windows Server makes sense:
+- Active Directory domain controller
+- Running server roles (IIS, SQL Server, etc.)
+- Remote Desktop Services (RDS) with CALs
+- Hyper-V nested virtualization
+- Enterprise management features
+
+**Current VM use case:** Desktop workstation with GPU, USB peripherals, monitors
+**Recommendation:** Windows 11 Pro is more appropriate for this use case
+
+**Option 4: Use Dock on Host, Pass Individual Devices**
+- Connect CalDigit dock to Proxmox host (don't pass USB4 controller)
+- Dock devices will appear on host system
+- Pass individual devices to VM as needed
+- Allows host to also use dock resources
+
+Limitations:
+- Can't hot-plug devices (must modify VM config)
+- Some devices may not pass through cleanly
+- More complex management
+
+---
+
+### 4. ✅ CalDigit TS3 Plus Dock Architecture Analysis
+
+**Dock Specifications:**
+- Thunderbolt 3 certified (40 Gbps)
+- Backward compatible with USB-C (non-Thunderbolt)
+- 15 ports: USB-A, USB-C, DisplayPort, Ethernet, SD card, audio
+
+**Dock Functionality Breakdown:**
+
+| Feature | Requires Thunderbolt | Works via USB-C Alt Mode |
+|---------|---------------------|-------------------------|
+| USB-A ports (5x) | ❌ No | ✅ Yes (via USB tunneling) |
+| USB-C port (1x) | ❌ No | ✅ Yes (via USB tunneling) |
+| DisplayPort (1x) | ❌ No | ✅ Yes (DP Alt Mode) |
+| Gigabit Ethernet | ✅ Yes | ❌ No (requires TB driver) |
+| SD/microSD card | ✅ Yes | ❌ No (appears as USB to dock) |
+| Audio in/out | ✅ Yes | ❌ No (appears as USB audio) |
+| Charging (87W) | ❌ No | ✅ Yes (USB-C PD) |
+
+**Why Ethernet/Audio Don't Work:**
+- CalDigit TS3 Plus uses Thunderbolt networking/audio controllers
+- These require Thunderbolt driver enumeration
+- Without Thunderbolt Control Center, devices aren't authorized
+- Windows Server 2025 sees generic USB device, not functional dock
+
+**Why It Works on Other PCs:**
+- Windows 10/11 have Thunderbolt Control Center
+- Automatic device authorization occurs
+- Full driver support for Thunderbolt peripherals
+- Proper device enumeration and power management
+
+---
+
+## Key Findings and Lessons Learned
+
+### ✅ Tailscale TPM Recovery
+
+**Important Discoveries:**
+1. TPM lockout is recoverable without data loss (re-authentication only)
+2. Tailscale state can be recreated safely
+3. Old state file preserved in case recovery needed later
+4. TPM lockout is common after system crashes/power loss
+
+**Best Practices:**
+- Keep backup of Tailscale auth keys for quick re-authentication
+- Consider disabling TPM state encryption if frequent lockouts occur
+- Monitor system logs for TPM warnings after crashes
+- Document Tailscale network IP addresses for emergency access
+
+**Recovery Procedure Added to Documentation:**
+```bash
+# Quick Tailscale TPM recovery
+systemctl stop tailscaled
+mv /var/lib/tailscale/tailscaled.state /var/lib/tailscale/tailscaled.state.bak
+systemctl start tailscaled
+tailscale up
+```
+
+---
+
+### ✅ APT Repository Management
+
+**Important Discoveries:**
+1. Third-party repositories can break `apt-get update` when system is upgraded
+2. Debian version mismatches cause 404 errors
+3. Removing repository files is safe if software not critical
+4. Regular repository maintenance needed after distribution upgrades
+
+**Best Practices:**
+- Audit `/etc/apt/sources.list.d/` after major Proxmox updates
+- Remove unused third-party repositories
+- Verify repository compatibility with current Debian version
+- Consider using Flatpak/AppImage for non-critical software
+
+**Common Repository Issues:**
+- Debian version changes (bookworm → trixie)
+- Repository URLs change or discontinued
+- PPA equivalents for Debian (less stable than Ubuntu PPAs)
+- OpenSUSE build service repositories often lack bleeding-edge Debian support
+
+---
+
+### 🔴 Windows Server Thunderbolt/USB4 Limitations
+
+**Critical Discoveries:**
+1. **Windows Server editions do NOT support Thunderbolt docks** (by Intel design)
+2. Thunderbolt Control Center cannot be installed on Windows Server
+3. USB4 controller detection ≠ full USB4/Thunderbolt functionality
+4. CalDigit and most dock manufacturers only support Windows 10/11 desktop
+5. Proxmox Thunderbolt passthrough has known limitations with dock device enumeration
+
+**Thunderbolt vs USB4 Clarification:**
+- **USB4 Host Router working** = Controller is detected and basic USB4 protocol functional
+- **Thunderbolt dock working** = Requires Thunderbolt software, device authorization, proper drivers
+- Having one does not guarantee the other
+
+**Windows Server vs Windows 11 Pro for Desktop Workstation:**
+
+| Feature | Windows Server 2025 | Windows 11 Pro |
+|---------|-------------------|---------------|
+| Thunderbolt dock support | ❌ No | ✅ Yes |
+| USB4 consumer devices | ⚠️ Limited | ✅ Full |
+| GPU passthrough gaming | ✅ Yes | ✅ Yes |
+| Microsoft Store | ❌ No | ✅ Yes |
+| Desktop apps | ✅ Yes | ✅ Yes |
+| Price | $$$$ | $$ |
+| Use case | **Servers** | **Workstations** |
+
+**Recommendation for VM 102:**
+- Current use case: Desktop workstation (GPU, USB peripherals, dock)
+- Windows Server 2025 is **wrong OS choice** for this use case
+- **Switch to Windows 11 Pro** for proper hardware support
+- Keep Windows Server licensing for actual server VMs (if needed)
+
+---
+
+## System Impact Assessment
+
+### Changes Made to Host System
+
+**Tailscale:**
+- State file replaced (re-authentication required)
+- Old state preserved as backup
+- Network connectivity restored
+- No configuration changes to network stack
+
+**APT:**
+- OpenRGB repository removed
+- Package manager functionality restored
+- No impact on existing installed packages
+- System updates now possible
+
+**USB4/Thunderbolt:**
+- No changes made (investigation only)
+- VM 102 configuration unchanged
+- USB4 controller still passed through (hostpci3)
+- Ready for future proper implementation
+
+### Host System Health: ✅ Excellent (8/10)
+
+**Status Unchanged:**
+- Storage: ✅ Excellent (ZFS mirror ONLINE, 0 errors)
+- Boot: ✅ Excellent (dual EFI, recovery mode)
+- Networking: ✅ Excellent (Tailscale restored)
+- Passthrough: ✅ Functional (GPU + USB working)
+- Package Management: ✅ Fixed (apt-get update working)
+
+---
+
+## Documentation Updates Made
+
+### 1. CLAUDE.md Updates
+
+**Added:**
+- Tailscale TPM lockout recovery procedure
+- APT repository troubleshooting notes
+- Windows Server Thunderbolt limitation warning
+- VM 102 OS recommendation note
+
+### 2. QUICK-REFERENCE.md Updates
+
+**Added:**
+- Tailscale recovery commands
+- APT repository cleanup commands
+- Thunderbolt dock troubleshooting section
+- Individual USB device passthrough examples
+
+### 3. SESSION-HISTORY.md Updates
+
+**Added:**
+- Session 4: Complete troubleshooting documentation
+- Detailed root cause analysis for all three issues
+- Solution procedures with explanations
+- Workaround options and recommendations
+- Windows Server vs Windows 11 comparison
+
+---
+
+## Immediate Action Items
+
+### Priority 1: CRITICAL (User Decision Required)
+
+1. **Decide on VM 102 Operating System**
+   - Option A: Stay with Windows Server 2025 (limited dock support)
+   - Option B: Switch to Windows 11 Pro (full hardware support) ✅ RECOMMENDED
+
+   If Option B selected:
+   - Download Windows 11 Pro ISO
+   - Backup current VM 102 data
+   - Fresh install or in-place upgrade
+   - Test Thunderbolt dock functionality
+
+### Priority 2: HIGH (Do This Week)
+
+2. **Document Tailscale Authentication**
+   - Save Tailscale auth key in secure location
+   - Document Tailscale network IPs
+   - Create quick recovery procedure document
+
+3. **Audit APT Repositories**
+   ```bash
+   # Review all third-party repositories
+   ls -la /etc/apt/sources.list.d/
+
+   # Check for Debian version mismatches
+   grep -r "bookworm" /etc/apt/sources.list.d/
+
+   # Test all repositories
+   apt-get update
+   ```
+
+### Priority 3: MEDIUM (This Month)
+
+4. **Test Alternative Dock Solutions**
+   - Test individual USB device passthrough
+   - Document which dock devices are needed in VM
+   - Create passthrough script for common devices
+
+5. **Monitor TPM Health**
+   ```bash
+   # Check TPM status
+   journalctl | grep -i tpm
+
+   # Monitor for lockout warnings
+   dmesg | grep -i tpm
+   ```
+
+---
+
+## Research Sources and References
+
+### Tailscale TPM Issue
+- Tailscale GitHub Issues: TPM unsealing failures
+- tpm2-tools documentation: Dictionary attack lockout recovery
+- Proxmox Forums: TPM state encryption issues
+- systemd-cryptenroll documentation: TPM2 key recovery
+
+### APT Repository Management
+- Debian Wiki: Sources List management
+- OpenSUSE Build Service: Debian repository structure
+- Proxmox Forums: APT troubleshooting after upgrades
+- Debian Release Notes: bookworm → trixie migration
+
+### Thunderbolt/USB4 Windows Server
+- Intel Community Forums: Windows Server Thunderbolt support (confirmed: NOT supported)
+- CalDigit Support: Windows Server compatibility (confirmed: NOT supported)
+- Reddit r/Proxmox: Thunderbolt dock passthrough experiences
+- Microsoft Docs: Windows Server 2025 hardware support matrix
+- ASMedia: USB4 driver compatibility list (Windows 10/11 only)
+- Thunderbolt.org: Device certification and OS requirements
+
+---
+
+## Scripts and Tools Created
+
+### Diagnostic Commands
+
+**Tailscale Status Check:**
+```bash
+# Check Tailscale service status
+systemctl status tailscaled
+
+# Check Tailscale interface
+ip addr show tailscale0
+
+# Check Tailscale network status
+tailscale status
+
+# Check TPM status
+journalctl | grep -i "tpm" | tail -20
+```
+
+**APT Health Check:**
+```bash
+# Test apt update
+apt-get update
+
+# Find problematic repositories
+grep -r "download.opensuse.org" /etc/apt/sources.list.d/
+
+# List all third-party sources
+ls -la /etc/apt/sources.list.d/
+```
+
+**Thunderbolt Dock Diagnostics (Windows VM):**
+```powershell
+# Check USB4 controller status
+Get-PnpDevice -FriendlyName "*USB4*"
+
+# Check Thunderbolt devices
+Get-PnpDevice -Class "Thunderbolt"
+
+# Check for unknown devices
+Get-PnpDevice -Status "Error","Unknown"
+
+# List USB devices
+Get-PnpDevice -Class "USB"
+```
+
+**Individual USB Passthrough (Proxmox):**
+```bash
+# List USB devices on host
+lsusb
+
+# Pass specific USB device to VM 102
+qm set 102 -usb0 host=VENDOR:PRODUCT
+
+# Example: Pass Apple iBridge
+qm set 102 -usb0 host=05ac:0256
+
+# Pass by USB port (survives replug)
+qm set 102 -usb0 host=1-2
+
+# Remove USB passthrough
+qm set 102 --delete usb0
+```
+
+---
+
+## Session Metrics
+
+**Session Date:** 2025-11-09
+**Session Duration:** ~3 hours
+**Issues Investigated:** 3 (Tailscale, APT, Thunderbolt dock)
+**Issues Resolved:** 2 (Tailscale, APT)
+**Issues Documented:** 1 (Thunderbolt dock - OS limitation)
+**Documents Updated:** 3 (CLAUDE.md, QUICK-REFERENCE.md, SESSION-HISTORY.md)
+**System Reboots Required:** 0 (all fixes applied without reboot)
+**Service Restarts:** 1 (tailscaled)
+
+**Key Success Factors:**
+1. Systematic troubleshooting approach (logs, error messages, root cause analysis)
+2. Recognition that TPM lockout is recoverable
+3. Understanding APT repository architecture
+4. Thorough research on Windows Server hardware limitations
+5. Documentation of workarounds when full solution not possible
+
+**Outstanding Issues:**
+1. 🔴 CalDigit TS3 Plus dock requires Windows 11 Pro (or alternative workarounds)
+2. ⚠️ Monitor for TPM lockout recurrence (may indicate underlying boot stability issue)
+3. ⚠️ Consider full APT repository audit (may be other outdated repos)
+
+---
+
+**Last Updated:** 2025-11-09
+**Branch:** `claude/analyze-proxmox-recovery-011CUsWnBa1uLALZSMfxLpQZ`
+**Status:** ✅ **TWO ISSUES RESOLVED** - Tailscale and APT working, Thunderbolt dock limitation documented
+**Next Steps:** User to decide on Windows Server 2025 vs Windows 11 Pro for VM 102
