@@ -421,6 +421,38 @@ journalctl -u qemu-server@102 -n 50
 3. Reboot Windows VM
 4. Verify "USB4 Host Router - Status: OK"
 
+### Windows VM Slow - High Interrupts After Installing WSL
+
+**Problem:**
+- Interrupts showing 5-10% CPU in Process Explorer/Task Manager
+- System feels sluggish even when WSL is not running
+- Issue appeared after installing WSL2
+
+**Root Cause:**
+- WSL2 enables VirtualMachinePlatform (Hyper-V)
+- Hypervisor runs at boot, even when WSL is shut down
+- Windows runs as VM guest on top of hypervisor = interrupt overhead
+
+**Quick Fix - Switch to WSL1:**
+```powershell
+# Convert existing distro
+wsl --set-version Ubuntu 1
+
+# Set default for new distros
+wsl --set-default-version 1
+```
+
+**Alternative - Disable Hypervisor:**
+```powershell
+# Disable (reboot required)
+bcdedit /set hypervisorlaunchtype off
+
+# Re-enable later
+bcdedit /set hypervisorlaunchtype auto
+```
+
+**Full Guide:** See `docs/windows/WINDOWS-WSL-PERFORMANCE.md`
+
 ### Thunderbolt Dock Not Working (Windows Server)
 
 **Problem:**
