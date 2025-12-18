@@ -56,6 +56,9 @@ This repository documents a complete, successful configuration of:
 │   │   ├── EFI-REPAIR-SUMMARY.md            # EFI partition repair
 │   │   └── CUSTOM-RECOVERY-ENTRY-FIX.md     # GRUB recovery fix
 │   │
+│   ├── windows/                       # Windows VM Troubleshooting
+│   │   └── WINDOWS-WSL-PERFORMANCE.md       # WSL2 high interrupt fix
+│   │
 │   └── backup/                        # Backup & Restore
 │       ├── BACKUP-DIRECTORY-ANALYSIS.md     # Backup security analysis
 │       ├── BACKUP-SCRIPT-ANALYSIS.md        # Backup script review
@@ -129,6 +132,9 @@ This repository documents a complete, successful configuration of:
 
 ### I want to set up remote server with long cable
 → See FINAL-SOLUTION-SUMMARY.md section "User's Use Case"
+
+### Windows VM is slow with high interrupt CPU usage after installing WSL
+→ Read [`docs/windows/WINDOWS-WSL-PERFORMANCE.md`](docs/windows/WINDOWS-WSL-PERFORMANCE.md)
 
 ---
 
