@@ -1,0 +1,44 @@
+USB4 Port Identification Commands
+==================================
+
+STEP 1: Check USB4 Host Router location
+----------------------------------------
+Get-PnpDevice | Where-Object {$_.FriendlyName -eq 'USB4 Host Router'} | Select-Object FriendlyName, Status, InstanceId | Format-List
+
+
+STEP 2: List all currently connected USB devices
+-------------------------------------------------
+Get-PnpDevice -PresentOnly | Where-Object {$_.InstanceId -like '*USB*'} | Select-Object FriendlyName, InstanceId | Format-Table -AutoSize
+
+
+STEP 3: After plugging in a test USB device, run this to see new devices
+-------------------------------------------------------------------------
+Get-PnpDevice -PresentOnly | Where-Object {$_.InstanceId -like '*USB*'} | Select-Object FriendlyName, InstanceId | Sort-Object FriendlyName | Format-Table -AutoSize
+
+
+STEP 4: Check USB device connection speed (after plugging in device)
+---------------------------------------------------------------------
+Get-CimInstance Win32_USBHub | Select-Object Name, DeviceID, Description | Format-List
+
+
+STEP 5: Detailed speed check for specific device (replace DEVICE_NAME)
+-----------------------------------------------------------------------
+Get-PnpDevice | Where-Object {$_.FriendlyName -like '*DEVICE_NAME*'} | Get-PnpDeviceProperty | Where-Object {$_.KeyName -like '*Speed*'} | Format-List
+
+
+STEP 6: Show USB hierarchy to identify which controller a device is under
+--------------------------------------------------------------------------
+Get-PnpDevice -Class USB | Where-Object {$_.Status -eq 'OK'} | Select-Object FriendlyName, InstanceId | Format-Table -AutoSize
+
+
+QUICK TEST: Find which physical port is USB4
+=============================================
+1. Run STEP 2 to see current devices
+2. Plug USB device into a rear USB port
+3. Run STEP 3 to see what new device appeared
+4. Check the InstanceId - if it contains the same location code as "USB4 Host Router" (from STEP 1), that's your USB4 port!
+
+Based on your output, the USB4 Host Router is at:
+PCI\VEN_1B21&DEV_2425&SUBSYS_24211B21&REV_01\4&2FC7FED0&0&00E3
+
+So look for devices with InstanceId containing "00E3" or "2FC7FED0"
